@@ -1,0 +1,116 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model User {
+  id        String   @id @unique @default(uuid()) @db.Uuid
+  name      String   @db.VarChar(255)
+  email     String   @unique
+  role      Role     @default(USER)
+  password  String   @db.VarChar(255)
+  phoneNo   String   @db.VarChar(10)
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+
+  // Relation to Order
+  orders Order[]
+
+  @@index([email])
+  @@index([id])
+}
+
+
+model Categories {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique @db.VarChar(100)
+  image     String   @db.VarChar(512)
+  createdAt DateTime @default(now()) @db.Timestamptz
+
+  // Establishes relation to FoodItem
+  foodItems FoodItem[] @relation("CategoryToFoodItems")
+
+  @@index([name]) // Adds search efficiency for category names
+}
+
+model FoodItem {
+  id           Int        @id @default(autoincrement())
+  name         String     @db.VarChar(100)
+  categoryName String     @db.VarChar(100)
+  category     Categories @relation("CategoryToFoodItems", fields: [categoryName], references: [name], onDelete: Cascade, onUpdate: Cascade)
+  description  String?    @db.Text
+  price        Float
+  offerPrice   Float?
+  ratings      Float?     @default(4)
+  images       String[]
+
+  // Establishes relation to OrderItem
+  orderItems OrderItem[] @relation("FoodItemToOrderItems")
+
+  // Indexes for performance
+  @@index([name])
+  @@index([categoryName])
+  @@index([id])
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SUCCESS
+  FAILED
+  DELIVERED
+  CANCELLED
+}
+
+model Order {
+  id          String      @id @default(uuid()) @db.Uuid
+  userId      String      @db.Uuid
+  user        User        @relation(fields: [userId], references: [id])
+  status      OrderStatus @default(PENDING)
+  paymentMode PaymentMode
+  orderAt     DateTime    @default(now()) @db.Timestamptz
+  total       Float
+  deliveryFee Float?      @default(0)
+
+  // Junction table for ordered items + quantities
+  items OrderItem[] @relation("OrderToOrderItems")
+
+  @@index([userId])
+  @@index([status])
+  @@index([orderAt])
+}
+
+// Junction table (Order ⇄ FoodItem)
+model OrderItem {
+  id         String   @id @default(uuid()) @db.Uuid
+  orderId    String   @db.Uuid
+  order      Order    @relation("OrderToOrderItems", fields: [orderId], references: [id])
+  foodItemId Int
+  foodItem   FoodItem @relation("FoodItemToOrderItems", fields: [foodItemId], references: [id])
+  quantity   Int      @default(1)
+  price      Float 
+  @@unique([orderId, foodItemId])
+}
+
+enum PaymentMode {
+  CASH
+  CARD
+  UPI
+  WALLET
+}
