@@ -4,6 +4,16 @@ import BadRequestError from '../ErrorClass/bad-request.js';
 import NotFoundError from '../ErrorClass/not-found.js';
 
 
+
+// export const createManyFoodItems = async (req, res) => {   
+
+//     const createdFoodItems = await prisma.foodItem.createMany({
+//         data: foodItems,
+//     });
+
+//     res.status(StatusCodes.CREATED).json({ createdFoodItems });
+// }
+
 //desc: Creates new FoodItem            route: /api/foodItem
 export const createFoodItem = async (req, res) => {
     const {

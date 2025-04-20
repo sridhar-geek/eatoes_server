@@ -8,12 +8,10 @@ generator client {
   provider = "prisma-client-js"
 }
 
-
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-
 
 enum Role {
   USER
@@ -35,7 +33,6 @@ model User {
   @@index([email])
   @@index([id])
 }
-
 
 model Categories {
   id        Int      @id @default(autoincrement())
@@ -78,6 +75,13 @@ enum OrderStatus {
   CANCELLED
 }
 
+enum PaymentMode {
+  CASH
+  CARD
+  UPI
+  WALLET
+}
+
 model Order {
   id          String      @id @default(uuid()) @db.Uuid
   userId      String      @db.Uuid
@@ -104,13 +108,7 @@ model OrderItem {
   foodItemId Int
   foodItem   FoodItem @relation("FoodItemToOrderItems", fields: [foodItemId], references: [id])
   quantity   Int      @default(1)
-  price      Float 
-  @@unique([orderId, foodItemId])
-}
+  price      Float
 
-enum PaymentMode {
-  CASH
-  CARD
-  UPI
-  WALLET
+  @@unique([orderId, foodItemId])
 }

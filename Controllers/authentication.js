@@ -40,7 +40,7 @@ export const login = async (req, res) => {
 
 //desc: post new data to database        route: /api/auth/register
 export const register = async (req, res) => {
-    const { name, email, password, phoneNo } = req.body;
+    const { name, email, password, phoneNo,role } = req.body;
 
     // Basic validation
     if (!name || !email || !password || !phoneNo)
@@ -59,6 +59,7 @@ export const register = async (req, res) => {
             email,
             password: hashed,
             phoneNo,
+            role : role || 'USER', 
         },
     });
     res.status(StatusCodes.CREATED).json("registration Successful")
